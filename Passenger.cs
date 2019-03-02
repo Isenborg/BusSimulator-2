@@ -25,27 +25,28 @@ namespace BusSimulator
             string gender = GetGender();
             int age = GetAge();
             int income = GetIncome(age);
+            string job = GetJob(r.Next(2, 93), age);
 
             if (gender == "Male")
             {
                 if (age <= 18)
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(101, 202)), Job = GetJob(r.Next(2, 93)), Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() { Name = GetName(r.Next(101, 201)), Job = job, Age = age, Gender = gender, Income = income });
                 }
                 else
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(101, 202)), Job = GetJob(r.Next(2, 93)), Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() { Name = GetName(r.Next(101, 201)), Job = job, Age = age, Gender = gender, Income = income });
                 }
             }
             else
             {
                 if (age <= 18)
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(1, 101)), Job = GetJob(r.Next(2, 93)), Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() { Name = GetName(r.Next(1, 101)), Job = job, Age = age, Gender = gender, Income = income });
                 }
                 else
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(1, 101)), Job = GetJob(r.Next(2, 93)), Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() { Name = GetName(r.Next(1, 101)), Job = job, Age = age, Gender = gender, Income = income });
                 }
             }
             return person;
@@ -71,12 +72,17 @@ namespace BusSimulator
             return name.Name;
         }
 
-        public string GetJob(int pos)
+        public string GetJob(int pos, int age)
         {
-            string[] json;
-            json = File.ReadAllLines("c:Scrape/Jobs.json");
-            Passengers job = JsonConvert.DeserializeObject<Passengers>(json[pos]);
-            return job.Job;
+            if (age <= 18) return "unemployed";
+            else if (age > 65) return "retired";
+            else
+            {
+                string[] json;
+                json = File.ReadAllLines("c:Scrape/Jobs.json");
+                Passengers job = JsonConvert.DeserializeObject<Passengers>(json[pos]);
+                return job.Job;
+            }
         }
 
         public string GetGender()
@@ -91,7 +97,9 @@ namespace BusSimulator
         public int GetIncome(int age)
         {
             double income = 0;
-            income = Math.Pow(age, 2) * Math.Sqrt(age) + 20000;
+            if (age <= 18) income = 0;
+            else if (age > 65) income = 20000;
+            else income = Math.Pow(age, 2) * Math.Sqrt(age) + 20000;
 
             return (int)income;
         }
