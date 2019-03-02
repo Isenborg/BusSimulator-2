@@ -1,37 +1,128 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 //Nedan är namnet på "namespace" - alltså projektet. 
 //SKapa ett nytt konsollprojekt med namnet "Bussen" så kan ni kopiera över all koden rakt av från denna fil
 namespace BusSimulator
 {
 	class Buss
 	{
-		public List<Passengers> Passengers;
-
 		
 		public void Run()
 		{
-			Console.WriteLine("Welcome to the awesome Buss-simulator! \n Press any button to continue . . .");
+            List<Passengers> passengers = new List<Passengers>();
+            bool ShowPassenger = false;
+            int choice;
+            Random r = new Random();
+            var Handler = new PassengerHandler();
+            var person = new Passengers();
+            Console.WriteLine("Welcome to the awesome Buss-simulator! \nPress any button to continue . . .");
             Console.ReadKey();
             Console.Clear();
-            Console.WriteLine("[1]: Help\n[2]: Add Passenger");
-            int choice;
-            var Handler = new PassengerHandler();
-            while (!int.TryParse(Console.ReadLine(), out choice))
+            do
             {
-                Console.Write("Enter a valid input: ");
-            }
-            switch(choice)
-            {
-                case 1:
-                    Console.WriteLine("Help");
-                    break;
-                case 2:
-                    Passengers.Add(Handler.GetPassenger());
-                    break;
-            }
+                if (ShowPassenger == true)
+                {
+                    int i = 1;
+                    foreach (var onscreen in passengers)
+                    {
+                        Console.WriteLine($"[{i}]Name: {onscreen.Name} | Age: {onscreen.Age} | Gender: {onscreen.Gender} | Job: {onscreen.Job} | Income: {onscreen.Income}");
+                        i++;
+                    }
+                    Console.WriteLine();
+                }
+                Console.WriteLine("[1]: Help\n[2]: Add Passenger\n[3]: Remove Passenger\n[4]: Show Passengers\n[5]: Sort Passengers");
+                while (!int.TryParse(Console.ReadLine(), out choice))
+                {
+                    Console.Write("Enter a valid input: ");
+                }
+                switch (choice)
+                {
+                    case 1:
+                        Console.WriteLine("Help");
+                        break;
+                    case 2:
+                        person = Handler.GetPassenger();
+                        passengers.Add(Handler.GetPassenger());
+                        break;
 
-		}
+                    case 3:
+                        Console.WriteLine("[1]: Random Passenger\n[2]: Passenger By Index");
+                        while (!int.TryParse(Console.ReadLine(), out choice))
+                        {
+                            Console.Write("Enter a valid input: ");
+                        }
+                        switch(choice)
+                        {
+                            case 1:
+                                if (passengers.Count > 0) passengers.RemoveAt(r.Next(0, passengers.Count - 1));
+                                else
+                                {
+                                    Console.WriteLine("No passengers to be removed.");
+                                    Console.ReadKey();
+                                }
+                                break;
+                            case 2:
+                                int index;
+                                while (!int.TryParse(Console.ReadLine(), out index))
+                                {
+                                    Console.Write("Enter a valid input: ");
+                                }
+                                if (passengers.Count > 0) passengers.RemoveAt(index+1);
+                                else
+                                {
+                                    Console.WriteLine("No passengers to be removed.");
+                                    Console.ReadKey();
+                                }
+                                break;
+                        }
+                        break;
+                    case 4:
+                        if (ShowPassenger == false) ShowPassenger = true;
+                        else ShowPassenger = false;
+                        break;
+
+                    case 5:
+                        Console.WriteLine("[1]: Sort By Age (Lowest First)\n[2]: Sort By Age (Highest First)\n[3]: Sort By Income (Lowest First)\n[4]: Sort By Income (Highest First)");
+                        while (!int.TryParse(Console.ReadLine(), out choice))
+                        {
+                            Console.Write("Enter a valid input: ");
+                        }
+                        switch (choice)
+                        {
+                            case 1:
+                                passengers.Sort(delegate (Passengers x, Passengers y)
+                                {
+                                    return x.Age.CompareTo(y.Age);
+                                });
+                                break;
+
+                            case 2:
+                                passengers.Sort(delegate (Passengers x, Passengers y)
+                                {
+                                    return y.Age.CompareTo(x.Age);
+                                });
+                                break;
+
+                            case 3:
+                                passengers.Sort(delegate (Passengers x, Passengers y)
+                                {
+                                    return x.Income.CompareTo(y.Income);
+                                });
+                                break;
+
+                            case 4:
+                                passengers.Sort(delegate (Passengers x, Passengers y)
+                                {
+                                    return y.Income.CompareTo(x.Income);
+                                });
+                                break;
+                        }
+                        break;
+                } 
+				Console.Clear();   
+            } while (true);
+        }
 
 		//Metoder för betyget E
 		
