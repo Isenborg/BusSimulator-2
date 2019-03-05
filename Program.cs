@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 //Nedan är namnet på "namespace" - alltså projektet. 
 //SKapa ett nytt konsollprojekt med namnet "Bussen" så kan ni kopiera över all koden rakt av från denna fil
 namespace BusSimulator
 {
 	class Buss
 	{
-		
-		public void Run()
+        public List<Passengers> passengers = new List<Passengers>();
+        public Random r = new Random();
+
+        public void Run()
 		{
-            List<Passengers> passengers = new List<Passengers>();
+            ScrapeAll();
             bool ShowPassenger = false;
             int choice;
-            Random r = new Random();
-            var Handler = new PassengerHandler();
-            var person = new Passengers();
+            
+            
             Console.WriteLine("Welcome to the awesome Buss-simulator! \nPress any button to continue . . .");
             Console.ReadKey();
             Console.Clear();
@@ -30,8 +31,23 @@ namespace BusSimulator
                         i++;
                     }
                     Console.WriteLine();
+                    Console.WriteLine($"[]: Add Passenger" +
+                    "\n[2]: Remove Passenger" +
+                    "\n[3]: Show Passengers (ON)" +
+                    "\n[4]: Sort Passengers" +
+                    "\n[5]: Poke Passenger" +
+                    "\n[6]: Statistics");
                 }
-                Console.WriteLine("[1]: Help\n[2]: Add Passenger\n[3]: Remove Passenger\n[4]: Show Passengers\n[5]: Sort Passengers");
+                else
+                {
+                    Console.WriteLine("[1]: Add Passenger" +
+                    "\n[2]: Remove Passenger" +
+                    "\n[3]: Show Passengers (OFF)" +
+                    "\n[4]: Sort Passengers" +
+                    "\n[5]: Poke Passenger" +
+                    "\n[6]: Statistics"); 
+                }
+
                 while (!int.TryParse(Console.ReadLine(), out choice))
                 {
                     Console.Write("Enter a valid input: ");
@@ -39,15 +55,13 @@ namespace BusSimulator
                 switch (choice)
                 {
                     case 1:
-                        Console.WriteLine("Help");
-                        break;
-                    case 2:
-                        person = Handler.GetPassenger();
-                        passengers.Add(Handler.GetPassenger());
+                        add_passenger();
                         break;
 
-                    case 3:
-                        Console.WriteLine("[1]: Random Passenger\n[2]: Passenger By Index");
+                    case 2:
+                        Console.WriteLine("[1]: Random Passenger" +
+                            "\n[2]: Passenger By Index" +
+                            "\n[3]: All Passengers");
                         while (!int.TryParse(Console.ReadLine(), out choice))
                         {
                             Console.Write("Enter a valid input: ");
@@ -55,35 +69,27 @@ namespace BusSimulator
                         switch(choice)
                         {
                             case 1:
-                                if (passengers.Count > 0) passengers.RemoveAt(r.Next(0, passengers.Count - 1));
-                                else
-                                {
-                                    Console.WriteLine("No passengers to be removed.");
-                                    Console.ReadKey();
-                                }
+                                RemoveRandomPassenger();
                                 break;
                             case 2:
-                                int index;
-                                while (!int.TryParse(Console.ReadLine(), out index))
-                                {
-                                    Console.Write("Enter a valid input: ");
-                                }
-                                if (passengers.Count > 0) passengers.RemoveAt(index+1);
-                                else
-                                {
-                                    Console.WriteLine("No passengers to be removed.");
-                                    Console.ReadKey();
-                                }
+                                RemovePassengerAtIndex();
+                                break;
+                            case 3:
+                                RemoveAllPassengers();
                                 break;
                         }
                         break;
-                    case 4:
+                    case 3:
                         if (ShowPassenger == false) ShowPassenger = true;
                         else ShowPassenger = false;
                         break;
 
-                    case 5:
-                        Console.WriteLine("[1]: Sort By Age (Lowest First)\n[2]: Sort By Age (Highest First)\n[3]: Sort By Income (Lowest First)\n[4]: Sort By Income (Highest First)");
+                    case 4:
+                        Console.WriteLine("[1]: Sort By Age (Lowest First)" +
+                            "\n[2]: Sort By Age (Highest First)" +
+                            "\n[3]: Sort By Income (Lowest First)" +
+                            "\n[4]: Sort By Income (Highest First)" +
+                            "\n[5]: Sort By Name (Alphabetic)");
                         while (!int.TryParse(Console.ReadLine(), out choice))
                         {
                             Console.Write("Enter a valid input: ");
@@ -117,6 +123,50 @@ namespace BusSimulator
                                     return y.Income.CompareTo(x.Income);
                                 });
                                 break;
+                            case 5:
+                                passengers.Sort(delegate (Passengers x, Passengers y)
+                                {
+                                    return x.Name.CompareTo(y.Name);
+                                });
+                                break;
+                        }
+                        break;
+
+                    case 5:
+                        int index;
+                        Console.Write("Enter the index of the person you want to poke: ");
+                        while (!int.TryParse(Console.ReadLine(), out index))
+                        {
+                            Console.Write("Enter a valid input: ");
+                        }
+                        poke(index);
+                        Console.ReadKey();
+                        break;
+
+                    case 6:
+                        Console.WriteLine("[1]: Total Age" +
+                            "\n[2]: Average Age" +
+                            "\n[3]: Highest Age");
+                        while (!int.TryParse(Console.ReadLine(), out choice))
+                        {
+                            Console.Write("Enter a valid input: ");
+                        }
+                        switch (choice)
+                        {
+                            case 1:
+                                calc_total_age();
+                                Console.ReadKey();
+                                break;
+
+                            case 2:
+                                calc_average_age();
+                                Console.ReadKey();
+                                break;
+
+                            case 3:
+                                max_age();
+                                Console.ReadKey();
+                                break;
                         }
                         break;
                 } 
@@ -125,87 +175,121 @@ namespace BusSimulator
         }
 
 		//Metoder för betyget E
-		
+		public void ScrapeAll()
+        {
+            if (!File.Exists("c:scrape/jobs.json"))
+            {
+                var jobscraper = new JobScraper();
+                jobscraper.Start();
+            }
+            if (!File.Exists("c:scrape/names.json"))
+            {
+                var namescraper = new NameScraper();
+                namescraper.Start();
+            }
+        }
+
+
 		public void add_passenger()
 		{
-			//Lägg till passagerare. Här skriver man då in ålder men eventuell annan information.
-			//Om bussen är full kan inte någon passagerare stiga på
+            var Handler = new PassengerHandler();
+            var person = new Passengers();
+            if (passengers.Count >= 15)
+            {
+                Console.WriteLine("The bus is too full to accept more passengers");
+                Console.ReadKey();
+            }
+            else
+            {
+                person = Handler.GetPassenger();
+                passengers.Add(Handler.GetPassenger());
+            }
+        }
+		
+        public void RemoveRandomPassenger()
+        {
+            if (passengers.Count > 0) passengers.RemoveAt(r.Next(0, passengers.Count - 1));
+            else
+            {
+                Console.WriteLine("No passengers to be removed.");
+                Console.ReadKey();
+            }
+        }
 
-		}
-		
-		public void print_buss()
+        public void RemovePassengerAtIndex()
+        {
+            int index;
+            Console.Write("Enter who should be removed: ");
+            while (!int.TryParse(Console.ReadLine(), out index))
+            {
+                Console.Write("Enter a valid input: ");
+            }
+            if (passengers.Count > 0) passengers.RemoveAt(index - 1);
+            else
+            {
+                Console.WriteLine("No passengers to be removed.");
+                Console.ReadKey();
+            }
+        }
+
+        public void RemoveAllPassengers()
+        {
+            if (passengers.Count == 0)
+            {
+                Console.WriteLine("No passengers to be removed");
+                Console.ReadKey();
+            }
+            passengers.RemoveRange(0, passengers.Count);
+        }
+
+		public void calc_total_age()
 		{
-			//Skriv ut alla värden ur vektorn. Alltså - skriv ut alla passagerare
-		}
-		
-		public int calc_total_age()
-		{
-			//Beräkna den totala åldern. 
-			//För att koden ska fungera att köra så måste denna metod justeras, alternativt att man temporärt sätter metoden med void
-            return 0;
+            int TotalAge = 0;
+            foreach(var calc in passengers)
+            {
+                TotalAge += calc.Age;
+            }
+            Console.WriteLine("The total age of the passengers in the bus is " + TotalAge);
+            Console.ReadKey();
     	}
 		
 		//Metoder för betyget C
 		
-		public int calc_average_age()
+		public void calc_average_age()
 		{
-			//Betyg C
-			//Beräkna den genomsnittliga åldern. Kanske kan man tänka sig att denna metod ska returnera något annat värde än heltal?
-			//För att koden ska fungera att köra så måste denna metod justeras, alternativt att man temporärt sätter metoden med void
-            return 0;
+            int AverageAge = 0;
+            foreach(var calc in passengers)
+            {
+                AverageAge += calc.Age;
+            }
+            AverageAge = AverageAge / passengers.Count;
+            Console.WriteLine("The average age of the passengers in the bus is " + AverageAge);
         }
 		
-		public int max_age()
+		public void max_age()
 		{
-			//Betyg C
-			//ta fram den passagerare med högst ålder. Detta ska ske med egen kod och är rätt klurigt.
-			//För att koden ska fungera att köra så måste denna metod justeras, alternativt att man temporärt sätter metoden med void
-            return 0;
+            int max_age = 0;
+            foreach(var calc in passengers)
+            {
+                if(calc.Age > max_age)
+                {
+                    max_age = calc.Age;
+                }
+            }
+            Console.WriteLine("The highest age of any passenger in the bus is " + max_age);
         }
-		
-		public void find_age()
-		{
-			//Visa alla positioner med passagerare med en viss ålder
-			//Man kan också söka efter åldersgränser - exempelvis 55 till 67
-			//Betyg C
-			//Beskrivs i läroboken på sidan 147 och framåt (kodexempel på sidan 149)
 
-		}
-		
-		public void sort_buss()
+		public void poke(int index)
 		{
-			//Sortera bussen efter ålder. Tänk på att du inte kan ha tomma positioner "mitt i" vektorn.
-			//Beskrivs i läroboken på sidan 147 och framåt (kodexempel på sidan 159)
-			//Man ska kunna sortera vektorn med bubble sort
-		}
-		
-		//Metoder för betyget A
-		
-		
-		public void print_sex()
-		{
-			//Betyg A
-			//Denna metod är nödvändigtvis inte svårare än andra metoder men kräver att man skapar en klass för passagerare.
-			//Skriv ut vilka positioner som har manliga respektive kvinnliga passagerare.
-		}	
-		public void poke()
-		{
-			//Betyg A
-			//Vilken passagerare ska vi peta på?
-			//Denna metod är valfri om man vill skoja till det lite, men är också bra ur lärosynpunkt.
-			//Denna metod ska anropa en passagerares metod för hur de reagerar om man petar på dom (eng: poke)
-			//Som ni kan läsa i projektbeskrivningen så får detta beteende baseras på ålder och kön.
-		}	
-		
-		public void getting_off()
-		{
-			//Betyg A
-			//En passagerare kan stiga av
-			//Detta gör det svårare vid inmatning av nya passagerare (som sätter sig på första lediga plats)
-			//Sortering blir också klurigare
-			//Den mest lämpliga lösningen (men kanske inte mest realistisk) är att passagerare bakom den plats..
-			//.. som tillhörde den som lämnade bussen, får flytta fram en plats.
-			//Då finns aldrig någon tom plats mellan passagerare.
+            int i = 1;
+            foreach(var poked in passengers)
+            {
+                if(i == index)
+                {
+                    Console.WriteLine($"{poked.Name} says: {poked.Message} ");
+                }
+                i++;
+            }
 		}	
 	}
 	
