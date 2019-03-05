@@ -1,7 +1,6 @@
 using Newtonsoft.Json;
 using System.IO;
 using System;
-using System.Collections.Generic;
 
 namespace BusSimulator
 {
@@ -10,6 +9,7 @@ namespace BusSimulator
         public string Name { get; set; }
         public string Job { get; set; }
         public string Gender { get; set; }
+        public string Message { get; set; }
 
         public int Age { get; set; }
         public int Income { get; set; }      
@@ -26,27 +26,32 @@ namespace BusSimulator
             int age = GetAge();
             int income = GetIncome(age);
             string job = GetJob(r.Next(2, 93), age);
+            string message = GetMessage(age); 
 
             if (gender == "Male")
             {
                 if (age <= 18)
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(101, 201)), Job = job, Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() {
+                    Name = GetName(r.Next(101, 201)), Job = job, Age = age, Gender = gender, Income = income, Message = message });
                 }
                 else
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(101, 201)), Job = job, Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() {
+                    Name = GetName(r.Next(101, 201)), Job = job, Age = age, Gender = gender, Income = income, Message = message });
                 }
             }
             else
             {
                 if (age <= 18)
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(1, 101)), Job = job, Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() {
+                    Name = GetName(r.Next(1, 101)), Job = job, Age = age, Gender = gender, Income = income, Message = message });
                 }
                 else
                 {
-                    person = (new Passengers() { Name = GetName(r.Next(1, 101)), Job = job, Age = age, Gender = gender, Income = income });
+                    person = (new Passengers() {
+                    Name = GetName(r.Next(1, 101)), Job = job, Age = age, Gender = gender, Income = income, Message = message});
                 }
             }
             return person;
@@ -102,6 +107,11 @@ namespace BusSimulator
             else income = Math.Pow(age, 2) * Math.Sqrt(age) + 20000;
 
             return (int)income;
+        }
+
+        public string GetMessage(int age)
+        {
+            return "Poke me again and i will kill you!";
         }
     }
 }
