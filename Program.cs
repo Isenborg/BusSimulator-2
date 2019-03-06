@@ -224,7 +224,15 @@ namespace BusSimulator
             {
                 Console.Write("Enter a valid input: ");
             }
-            if (passengers.Count > 0) passengers.RemoveAt(index - 1);
+            if (index < 1)
+            {
+                Console.WriteLine();
+            }
+            else if (index < passengers.Count)
+            {
+
+            }
+            else if (passengers.Count > 0) passengers.RemoveAt(index - 1);
             else
             {
                 Console.WriteLine("No passengers to be removed.");
