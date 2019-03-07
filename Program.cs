@@ -22,36 +22,10 @@ namespace BusSimulator
             Console.Clear();
             do
             {
-                if (ShowPassenger == true)
-                {
-                    int i = 1;
-                    foreach (var onscreen in passengers)
-                    {
-                        Console.WriteLine($"[{i}]Name: {onscreen.Name} | Age: {onscreen.Age} | Gender: {onscreen.Gender} | Job: {onscreen.Job} | Income: {onscreen.Income}");
-                        i++;
-                    }
-                    Console.WriteLine();
-                    Console.WriteLine($"[]: Add Passenger" +
-                    "\n[2]: Remove Passenger" +
-                    "\n[3]: Show Passengers (ON)" +
-                    "\n[4]: Sort Passengers" +
-                    "\n[5]: Poke Passenger" +
-                    "\n[6]: Statistics");
-                }
-                else
-                {
-                    Console.WriteLine("[1]: Add Passenger" +
-                    "\n[2]: Remove Passenger" +
-                    "\n[3]: Show Passengers (OFF)" +
-                    "\n[4]: Sort Passengers" +
-                    "\n[5]: Poke Passenger" +
-                    "\n[6]: Statistics"); 
-                }
+                ShowPassengers(ShowPassenger);
+                MainMenu(ShowPassenger);
 
-                while (!int.TryParse(Console.ReadLine(), out choice))
-                {
-                    Console.Write("Enter a valid input: ");
-                }
+                choice = StringToNum();
                 switch (choice)
                 {
                     case 1:
@@ -90,10 +64,7 @@ namespace BusSimulator
                             "\n[3]: Sort By Income (Lowest First)" +
                             "\n[4]: Sort By Income (Highest First)" +
                             "\n[5]: Sort By Name (Alphabetic)");
-                        while (!int.TryParse(Console.ReadLine(), out choice))
-                        {
-                            Console.Write("Enter a valid input: ");
-                        }
+                        choice = StringToNum();
                         switch (choice)
                         {
                             case 1:
@@ -135,10 +106,7 @@ namespace BusSimulator
                     case 5:
                         int index;
                         Console.Write("Enter the index of the person you want to poke: ");
-                        while (!int.TryParse(Console.ReadLine(), out index))
-                        {
-                            Console.Write("Enter a valid input: ");
-                        }
+                        index = StringToNum();
                         poke(index);
                         Console.ReadKey();
                         break;
@@ -147,14 +115,12 @@ namespace BusSimulator
                         Console.WriteLine("[1]: Total Age" +
                             "\n[2]: Average Age" +
                             "\n[3]: Highest Age");
-                        while (!int.TryParse(Console.ReadLine(), out choice))
-                        {
-                            Console.Write("Enter a valid input: ");
-                        }
+                        index = StringToNum();
                         switch (choice)
                         {
                             case 1:
-                                calc_total_age();
+                                int TotalAge = calc_total_age();
+                                Console.WriteLine("The total age of the passengers in the bus is " + TotalAge);
                                 Console.ReadKey();
                                 break;
 
@@ -169,6 +135,11 @@ namespace BusSimulator
                                 break;
                         }
                         break;
+                    case 7:
+                        var games = new Games();
+                        games.TotalAgeGame();
+                        break;
+
                 } 
 				Console.Clear();   
             } while (true);
@@ -193,7 +164,6 @@ namespace BusSimulator
 		public void add_passenger()
 		{
             var Handler = new PassengerHandler();
-            var person = new Passengers();
             if (passengers.Count >= 15)
             {
                 Console.WriteLine("The bus is too full to accept more passengers");
@@ -201,7 +171,6 @@ namespace BusSimulator
             }
             else
             {
-                person = Handler.GetPassenger();
                 passengers.Add(Handler.GetPassenger());
             }
         }
@@ -220,23 +189,16 @@ namespace BusSimulator
         {
             int index;
             Console.Write("Enter who should be removed: ");
-            while (!int.TryParse(Console.ReadLine(), out index))
+            index = StringToNum();
+            if (index < 1 || index > 15)
             {
-                Console.Write("Enter a valid input: ");
-            }
-            if (index < 1)
-            {
-                Console.WriteLine();
-            }
-            else if (index < passengers.Count)
-            {
-
+                Console.WriteLine("Value was outside of parameters");
+                Console.ReadKey();
             }
             else if (passengers.Count > 0) passengers.RemoveAt(index - 1);
             else
             {
-                Console.WriteLine("No passengers to be removed.");
-                Console.ReadKey();
+                Console.WriteLine("There is no passanger at that index");
             }
         }
 
@@ -250,15 +212,14 @@ namespace BusSimulator
             passengers.RemoveRange(0, passengers.Count);
         }
 
-		public void calc_total_age()
+		public int calc_total_age()
 		{
             int TotalAge = 0;
             foreach(var calc in passengers)
             {
                 TotalAge += calc.Age;
             }
-            Console.WriteLine("The total age of the passengers in the bus is " + TotalAge);
-            Console.ReadKey();
+            return TotalAge;
     	}
 		
 		//Metoder för betyget C
@@ -298,7 +259,63 @@ namespace BusSimulator
                 }
                 i++;
             }
-		}	
+		}
+
+        public void ShowPassengers(bool sp)
+        {
+            if (sp == true)
+            {
+                int i = 1;
+                foreach (var onscreen in passengers)
+                {
+                    Console.WriteLine($"[{i}]Name: {onscreen.Name} | Age: {onscreen.Age} | Gender: {onscreen.Gender} | Job: {onscreen.Job} | Income: {onscreen.Income}");
+                    i++;
+                }
+                Console.WriteLine();
+            }
+            else return;
+        }
+
+        public int StringToNum()
+        {
+            int number;
+            while (!int.TryParse(Console.ReadLine(), out number))
+            {
+                Console.Write("Enter a valid input: ");
+            }
+            return number;
+        }
+
+        public void MainMenu(bool sp)
+        {
+                if(sp == true)
+                { 
+                Console.WriteLine($"[1]: Add Passenger" +
+                "\n[2]: Remove Passenger" +
+                "\n[3]: Show Passengers (ON)" +
+                "\n[4]: Sort Passengers" +
+                "\n[5]: Poke Passenger" +
+                "\n[6]: Statistics" +
+                "\n[7]: Games");
+                }
+                else
+                {
+                Console.WriteLine("[1]: Add Passenger" +
+                "\n[2]: Remove Passenger" +
+                "\n[3]: Show Passengers (OFF)" +
+                "\n[4]: Sort Passengers" +
+                "\n[5]: Poke Passenger" +
+                "\n[6]: Statistics" +
+                "\n[7]: Games");
+            }
+        }
+
+        public void GameMenu()
+        {
+            Console.WriteLine("[1]: Add Passenger" +
+                "\n[2]: Remove Passenger" +
+                "\n[3]: Stop Game");
+        }
 	}
 	
 	class Program
